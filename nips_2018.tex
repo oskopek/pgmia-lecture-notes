@@ -23,8 +23,11 @@
 \usepackage{url}            % simple URL typesetting
 \usepackage{booktabs}       % professional-quality tables
 \usepackage{amsfonts}       % blackboard math symbols
+\usepackage{amsmath}       % blackboard math symbols
 \usepackage{nicefrac}       % compact symbols for 1/2, etc.
 \usepackage{microtype}      % microtypography
+
+\newcommand{\E}[0]{\mathbb{E}}
 
 \title{Lecture Notes and Topic Summaries\\{\normalfont\large \textsc{Probabilistic Graphical Models for Image Analysis}}}
 
@@ -79,6 +82,8 @@
 
 \subsection{Lecture 1 --- Introduction to Graphical Models --- 2018/09/21}
 
+Test
+
 \subsection{Lecture 2 --- Variational Inference --- 2018/09/28}
 
 \subsection{Lecture 3 --- Expectation Propagation --- 2018/10/05}
@@ -109,11 +114,144 @@ N/A for exam.
 
 N/A for exam.
 
+
+
+
+
+
+
 \section{Topics}
 
-TODO
 
-\bibliography{references.bib}
-\bibliographystyle{natbib}
+
+\subsection{EM Algorithm}
+
+\subsubsection{Concept and examples e.g. EM for Gaussian Mixture Model}
+
+
+\subsubsection{Why does the algorithm converge?}
+
+
+
+
+
+
+
+
+
+\subsection{Variational Inference}
+
+
+\subsubsection{Concept and examples e.g.~Mean-field for Gaussian Mixture with Dirichlet Prior}
+
+\subsubsection{Expectation Propagation and $\alpha$ divergence}
+
+
+\subsubsection{Examples e.g. Expectation Propagation for Gaussian Mixture}
+
+
+\subsubsection{Explain exponential families and what they offer, especially wrt. Variational Inference}
+
+
+\subsubsection{Explain the key concepts of MCMC (e.g. detailed balance, normalization) and the advantages disadvantages of MCMC vs Variational Inference}
+
+
+
+
+
+
+
+
+
+\subsection{Extensions of Variational Inference}
+
+\subsubsection{Explain SVI and its motivation and problems}
+
+\subsubsection{What is a natural gradient and the motivation for it?}
+
+\subsubsection{Explain Black Box Variational Inference}
+
+\subsubsection{What are the disadvantages of Black Box Var. Inference?}
+
+\subsubsection{Show variance reduction through control variates. What is one typical and simple choice for a control variate?}
+
+
+
+
+
+
+\subsection{Dimensionality Reduction}
+
+\subsubsection{Derive Factor Models, PCA, Probabilistic PCA}
+
+\subsubsection{Derive EM for Factor Models}
+
+\subsubsection{Show the relation between variance and reconstruction error}
+
+\subsubsection{Show the relation between SVD and PCA}
+
+\subsubsection{Explain the difference/similarities between PCA and linear least squares}
+
+\subsubsection{Explain and derive the Eigenface Algorithm, name problems and results wrt. implementation and performance}
+
+\subsubsection{Explain the Kernel Trick and derive Kernel PCA}
+
+\subsubsection{What would be advantages and disadvantages wrt.~the Eigenface Algorithm when using the Kernel trick?}
+
+
+
+
+
+
+
+\subsection{Sequential Data}
+
+\subsubsection{Explain HMM and Kalman Filter, especially Inference and Learning}
+
+\subsubsection{Explain the difference between the Kalman Filter and the Rauch Tung Striebel smoother.}
+
+\subsection{Score Functions}
+
+\subsubsection{Explain the concept and Score Function Estimators}
+
+\subsubsection{Explain the log-derivative trick and how to derive:
+$\nabla_\theta \E_{x \sim p(x|\theta}[f(x)] = \E_x[f(x) \nabla_\theta \log p(x|\theta)]$}
+
+\subsubsection{Relate the algorithm to policy gradients and discuss the problems of the algorithm}
+
+
+
+
+
+
+
+\subsection{Variational Autoencoders}
+
+\subsubsection{Explain the concept in detail and the motivation for distributional assumptions.}
+
+\subsubsection{Explain the reparameterization trick.}
+
+\subsubsection{Explain the main ideas and properties of SGD. How is it useful in the context of VAE and why do we need the reparameterization trick?}
+
+\subsubsection{Show the derivation of VAE's from black box variational inference.}
+
+\subsubsection{Explain the cost function of beta-VAE and outline 3 desired effects of the cost function compared to a classic VAE.}
+
+
+
+
+\subsection{Deep Generative Models}
+
+\subsubsection{Explain the cost function of GANs what are advantages and disadvantages of GANs compared to VAEs?}
+
+\subsubsection{Explain the difficulty of evaluating generative models and especially their latent representation.}
+
+\subsubsection{Explain ICA and how it relates to recent approaches for learning ``disentangled'' representations}
+
+
+
+
+%\bibliography{references.bib}
+%\bibliographystyle{}
 
 \end{document}
