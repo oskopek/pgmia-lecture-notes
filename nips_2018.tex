@@ -27,7 +27,10 @@
 \usepackage{nicefrac}       % compact symbols for 1/2, etc.
 \usepackage{microtype}      % microtypography
 
-\newcommand{\E}[0]{\mathbb{E}}
+\newcommand{\E}[2]{\mathbb{E}_{#1}\left[#2\right]}
+\newcommand{\mc}[1]{\mathcal{#1}}
+\newcommand{\KL}[2]{\mathrm{KL}\left[#1||#2\right]}
+\newcommand{\I}[1]{\mathbb{I}\left[#1\right]}
 
 \title{Lecture Notes and Topic Summaries\\{\normalfont\large \textsc{Probabilistic Graphical Models for Image Analysis}}}
 
@@ -82,11 +85,220 @@
 
 \subsection{Lecture 1 --- Introduction to Graphical Models --- 2018/09/21}
 
-Test
+Why Graphical Models?
+
+\begin{itemize}
+    \item Neuroscience -- Factor Analysis
+    \item Image Generation -- GANs
+    \item Genomics -- ``Factor Analysis''
+    \item Graph-based SLAM
+\end{itemize}
+
+\subsubsection{Probabilistic Modeling}
+
+Reasoning under uncertainty -- knowledge representation + automated reasoning. $\Rightarrow$ deal with uncertainty using probability.
+
+Graphical models -- provide a compact representation of two equivalent perspectives:
+\begin{itemize}
+    \item Set of independencies
+    \item Factorization of the joint dist.
+\end{itemize}
+
+Algorithms:
+\begin{itemize}
+    \item Representation -- semantic meaning of edges, how to use them to model tasks
+    \item Learning -- Given empirical measurements, estimate params of the model
+    \item Inference -- For a given model, use it to make decisions and reason
+\end{itemize}
+
+Machine learning: Model the task as a join probability $P(x, y), x_i \in \mathcal{X}, y_i \in \mathcal{Y}$ data + labels.
+
+Supervised learning: given labeled training data $\mc{D} \subset (X \times Y)^n$ find a function $\hat{f}: X \to Y$ that correctly classifier all images, including unseen ones.
+
+Learning a function (parametric approach). We have a class of functions $\mc{F} = \{f_\theta: X \to Y | \theta \in \Theta\}$. Then we can do empirical risk minimization: $$\hat{\theta} := \arg\min_{\theta \in \Theta} \E{\hat{P}}{\I{f_\theta(x_i) \neq y_i}}.$$ The expectation is interpreted as the number of missclassifications on the training data. ERM find the function $f_{\hat{\theta}}$ that minimizes mistakes on training data.
+
+Linear regression: $y=\theta^Tx + \varepsilon$, where the MLE loss is the mean squared error: $L(\theta) = \frac{1}{n} \sum_{i=1}^n (\theta^Tx_i - y_i)^2$
+
+Unsupervised learning: Given a class of models $P(X; \theta), \theta in \Theta$, unlabeled data $\mc{D} \subset X^n$, sampled i.i.d. from $P(X)$, find the model $\hat{\theta}$ that fits the data best. I.e. want $P(X; \hat{\theta} \approx \hat{P}(X)$, or, better, $P(X; \hat{\theta} \approx P(X)$.
+
+Likelihood: function of $\theta$ with fixed $x$: $L(\theta|x) := P(x|\theta)$ .. i.e. how likely is $\theta$ to have generated $x$?
+
+MLE (Maximum Likelihood estimation): Given data $D$, let $$L(\theta|D) := P(D|\theta) := \prod_{i=1}^N P(x^i|\theta)$$. Assumes iid given $\theta$. $$\hat{\theta}_{ML} = \arg \max_{\theta \in \Theta} L(\theta|D)$$. Usually minimize Negative Log Likelihood instead (NLL), because of numeric issues. Also, logarithm is monotonic, and simplifies math from products to sums.
+
+We can show that computing MLE is the same as minimizing empirical risk. May lead to overfitting in practice, though.
+
+\subsubsection{Probabilistic Inference}
+
+Independence, conditional independence of RVs. Marginalization (expensive! exponential in number of vars!).
+
+Factorizing joint distributions: Joint factorizes according to conditionals in Bayesian Network (BN).
+
+Variable elimination: Marginalize and push the sums inwards, in a given order of variables. Makes a big difference computationally.
+
+Why Bayesian networks? Because they make a lot of tasks simple and computationally efficient, and have reasonably nice interpretability.
 
 \subsection{Lecture 2 --- Variational Inference --- 2018/09/28}
 
+\subsubsection{Expectation Maximization}
+
+Approximate inference (due to model complexity): sampling, or variational based methods. In practice, we do not observe everything in a model, and we are usually interested in unobserved (latent) variables.
+
+Latent variable model: is $p(x, z) = p(x|z)p(z)$, where cluster membership assignment is an RV with $p(x|z=k) \sim \mc{N}(\mu_k, \sigma_k)$. Hence,
+$$p(x) = \sum_{k=1}^K p(x|z=k)p(z=k) = \sum_{k=1}^K \pi_k \mc{N}(\mu_k, \sigma_k).$$
+
+\textbf{EM algorithm}: MLE with hidden variables.
+
+General framework for partially observable data. Idea: Maximizing likelihood given "expected complete" dataset. Converges, but to local optima (because marginal likelihood increases after each EM round).
+
+$$\log p(D) = \sum_{x \in D} \log p(x) = \sum_x \log (\sum_z p(x|z)p(z))$$
+
+Problem: Only $x$ is observed, but we have $\theta$ and $z$, both unobserved.
+
+Algorithm:
+\begin{enumerate}
+    \item Expectation: Assign values to hidden/missing variables: compute $p(z|x; \theta_t)$
+    \item Maximization: Maximize parameter LogLikelihood $\theta_{t+1} = \arg \max_\theta \E{z \sim p(z|x, \theta_t)}{\log p(x, z, \theta)}$
+    \item Go to 1) until convergence.
+\end{enumerate}
+
+\subsubsection{Variational Inference}
+
+Probabilistic model: joint $p(z, x)$. Inference about unknows is through the posterior, the conditional distribution of the hidden variables given observations: $p(z|x) = p(x, z) / p(x)$. For most interesting models, the denominator $p(x)$ is intractable.
+
+$$p(z|x, \theta) = \frac{p(z, x|\theta)}{\int_x p(z, x | \theta) dx}$$
+
+Idea: pick family of distributions over latent variables with its own variational  parameter. $q(z|\nu) = ...?$  and find variational parameters $\nu$ such that $q$ and $p$ are close.
+
+Concept: Turn inference into optimization. Place a variational family of distributions over latent vars. Fit the variational parameters to be close (in KL divergence).
+
+\textbf{Convexity} of functions: $f: X \to \mathbb{R}$ defined on $I = [a, b]$ is convex on $I$ if $\forall x_1, x_2 \in I, \forall \lambda \in [0,1]: f(\lambda x_1 + (1-\lambda)x_2) \leq \lambda f(x_1) + (1-\lambda)f(x_2)$. $f$ is \textbf{concave} if $-f$ is convex.
+
+\textbf{Jensen's inequality}: $f$ convex fn on interval $I$. If $x_1, \ldots, x_n \in I, \lambda_1, \ldots, \lambda_n \geq 0$ with $\sum_{i=1}^n \lambda_i = 1$, then $$f(\sum_{i=1}^n \lambda_i x_i) \leq \sum_{i=1}^n \lambda_i f(x_i)$$.
+
+\textbf{TODO: Proof by induction from convexity definition. Also $-log(x)$ is convex on $(0, \infty)$}.
+
+\textbf{ELBO derivation}: Let $q(z)$ be some probability distribution on $z$.
+\begin{align*}
+    \log p(x, \theta) &= \int q(z)\log p(x, \theta) dz\\
+    &= \int q(z) \log \frac{p(x, \theta) p(z|x,\theta)}{p(z|x,\theta)} dz\\
+    &= \int q(z) \log \frac{p(x, z, \theta)}{p(z|x,\theta)} dz\\
+    &= \int q(z) \log \frac{p(x, z, \theta)q(z)}{p(z|x,\theta)q(z)} dz\\
+    &= \int q(z) \log \frac{p(x, z, \theta)}{q(z)} dz - \int q(z) \log \frac{p(z|x, \theta)}{q(z)} dz\\
+    &=: \mathrm{ELBO}(q, \theta) + \KL{q(z)}{p(z|x, \theta)}\\
+    &\geq \mathrm{ELBO}(q, \theta)
+\end{align*}
+
+By Jensen's, KL divergence is non-negative and the first term is thus a lower bound (Evidence lower bound).
+
+\textbf{TODO: What is $q(z)$?}
+
+\textbf{Revisiting EM}: If we can analytically calculate $q(z):=p(z|x, \theta_t)$,
+then
+\begin{align*}
+    \mathrm{ELBO}(q, \theta) &= \int q(z) \log\frac{p(x, z, \theta)}{q(z)}dz\\
+    &= \int q(z) \log p(x, z, \theta) dz - \int q(z) \log q(z) dz\\
+    &= \int p(z|x, \theta_t) \log p(x, z, \theta) dz - \int p(z|x, \theta_t) \log p(z|x, \theta_t) dz\\
+    &= \mc{Q}(\theta, \theta_t) + \mc{H}(z|x)
+\end{align*}
+
+EM maximizes ELBO instead of directly optimizing $\log p(x, \theta)$:
+$$ELBO = \int ... dz = \E{q}{\log p(x, z, \theta) - \log q(z)}.$$
+For e.g. Gaussian Mixture models, posterior $p(z|x; \theta_t)$ can be computed analytically.
+
+Hence
+\begin{itemize}
+    \item E-step: Compute posterior and evaluate ELBO for $q = p(z|x; \theta)$.
+    \item M-step: $\theta_{t+1} = \arg\max_\theta \int p(z|x; \theta_t) \log p(x, z, \theta) dz$
+\end{itemize}
+
+\subsubsection{Mean-field variational inference}
+
+What if we cannot find a closed form for the posterior? \textbf{We cannot use EM!}
+
+Idea: Choose/design a variational family Q s.t. the expectations are easy to compute! (For example, they factorize).
+
+$$q(z_1, \ldots, z_k) = \prod_{i=1}^k q(z_i)$$
+
+Note: this does not contain the true posterior, as variables are most likely dependent, which this cannot capture.
+
+Note: We can group some variables together.
+
+\textbf{ELBO for mean-field approximation}:
+\begin{align*}
+\mathrm{ELBO}(q, \theta) &= \int q(z) \log \frac{p(x, z, \theta)}{q(z)} dz\\
+&= \int \prod_i q(z_i) \log p(x, z, \theta) dz - \sum_i \int q(z_i) \log q(z_i)dz\\
+&= \int q(z_j) \left(\int \prod_{i \neq j} q(z_i) \log p(x, z, \theta) \prod_{i \neq j} dz_i \right)dz_j - \int q(z_j) \log q(z_j) dz_j - \sum_{i \neq j} \int q(z_i) \log q(z_i) dz_i\\
+&= \int q(z_j) \log \frac{\exp(\E{i \neq j}{\log p(x, z, \theta)})}{q(z_j)} dz_j
+- \sum_{i \neq j} \int q(z_i) \log q(z_i) dz_i =: -\KL{q_j}{\Tilde{p}_{i \neq j}} + \mc{H}(z_{i \neq j}) + c
+\end{align*}
+
+Where $c$ is a normalization constant.
+
+\subsubsection{Coordinate Ascent}
+
+KL-div is nonnegative, hence ELBO is maximal when $q(z_j) = \Tilde{p}_{i \neq j} = \frac{1}{Z}\E{i \neq j}{\log p(x, z, \theta)}$
+
+Finally:
+\begin{itemize}
+    \item E-step: $\forall j \mathrm{ evaluate } q^*(z_j) = \frac{1}{Z} \E{i \neq j}{\log p(x, z, \theta)}$ and set $q^{t+1} = \prod_i q_i^*$
+    \item M-step: Find $\theta_{t+1} = \arg\max_\theta ELBO(q^{t+1}, \theta)$
+\end{itemize}
+
+Overall: deterministic and fast (unlike MCMC), often works well, multiple parallel inits needed bc of local optima, ELBO is not always easy to derive.
+
+Key idea: Bounding by convexity!
+
+\textbf{TODO: GMM with Dirichlet prior on the weights}
+
 \subsection{Lecture 3 --- Expectation Propagation --- 2018/10/05}
+
+Key concept of VI: (cannot calculate this KL directly, because of $p(x)$, but we can see that maximizing ELBO is equiv to minimizing KL div between the posteriors, as $p(x)$ is basically a constant.
+\begin{align*}
+\KL{q(z)}{p(z|x)} &= \E{q}{\log \frac{q(Z)}{p(Z|x)}}\\
+&= \E{q}{\log q(Z)} - \E{q}{\log p(Z|x)}\\
+&= \E{q}{\log q(Z)} - \E{q}{\log p(Z,x)} + \log p(x)\\
+&= - (\E{q}{\log p(Z,x)} - \E{q}{\log q(Z)}) + \log p(x)\\
+\end{align*}
+
+\subsubsection{Kullback-Leibler Divergence (KL-divergence)}
+
+Properties:
+\begin{itemize}
+    \item $\KL{q}{p} \geq 0 \forall q, p$
+    \item $\KL{q}{p} = 0$ iff $q = p$
+    \item No symmetry: $\KL{q}{p} \neq \KL{p}{q}$
+\end{itemize}
+
+For $\KL{q}{p}$:
+\begin{itemize}
+    \item If $q = p$, distributions are equal.
+    \item If $q$ is high, $p$ is high -- captures what we want.
+    \item If $q$ is high, but $p$ is low .. \textbf{this is problematic.}
+    \item If $q$ is low, then expectation is 0.
+\end{itemize}
+
+Hence we use $\KL{q}{p}$ and not $\KL{p}{q}$ because we want to capture the parts where $p$ is high, primarily.
+
+\subsubsection{Exponential families}
+
+Family of distributions over $x$ given parameters $\eta$ is the set of distributions of the form:
+$$p(x|\eta) = h(x)g(\eta)\exp(\eta^Tu(x))$$
+or otherwise:
+$$p(x|\theta) = h(x) \exp(\eta^T T(x) - A(\eta))$$
+Where
+\begin{itemize}
+    \item $\eta$ are natural params
+    \item $g(\eta)$ can be interpreted as a normalization
+\end{itemize}
+
+Example: (many!) e.g. Bernoulli $p(x|\mu) = \mu^x (1-\mu)^{1-x}$ 
+where $\eta = \frac{\mu}{1-\mu}, T(x) = x, A(\eta) = \log(1+e^\eta) = -\log(1-\mu), h(x) = 1$.
+
+$= \exp\left(\log\left(\frac{\mu}{1-\mu}\right)x - \log(1-\mu)\right)$
+
+Also $\mu = 1 / (1+e^{-\eta})$
+
+
 
 \subsection{Lecture 4 --- Repetition and Stochastic Variational Inference --- 2018/10/12}
 
@@ -205,17 +417,24 @@ N/A for exam.
 
 
 \subsection{Sequential Data}
+Our data aren't iid anymore. We account for that by conditioning on previous state. Simplest are first-order Markov models. We condition the current state on the previous one. 
 
 \subsubsection{Explain HMM and Kalman Filter, especially Inference and Learning}
 
 \subsubsection{Explain the difference between the Kalman Filter and the Rauch Tung Striebel smoother.}
+I didn't find this in the slides. Perhaps it's in Bishop. According to  \url{https://en.wikipedia.org/wiki/Kalman_filter#Rauch\%E2\%80\%93Tung\%E2\%80\%93Striebel}, it's an efficient two-pass algorithm for fixed interval smoothing.
+
 
 \subsection{Score Functions}
+Score functions and the log derivative trick is explained here.
+\url{http://blog.shakirm.com/2015/11/machine-learning-trick-of-the-day-5-log-derivative-trick/}
 
 \subsubsection{Explain the concept and Score Function Estimators}
+See above.
 
 \subsubsection{Explain the log-derivative trick and how to derive:
-$\nabla_\theta \E_{x \sim p(x|\theta}[f(x)] = \E_x[f(x) \nabla_\theta \log p(x|\theta)]$}
+$\nabla_\theta \E{x \sim p(x|\theta}{f(x)} = \E{x}{f(x) \nabla_\theta \log p(x|\theta)}$}
+See above.
 
 \subsubsection{Relate the algorithm to policy gradients and discuss the problems of the algorithm}
 
