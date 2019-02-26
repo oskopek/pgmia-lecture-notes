@@ -289,6 +289,7 @@ Where
 \begin{itemize}
     \item $\eta$ are natural params
     \item $g(\eta)$ can be interpreted as a normalization
+    \item $\E{}{t(x)} = \frac{d}{d\eta}a(\eta)$
 \end{itemize}
 
 Example: (many!) e.g. Bernoulli $p(x|\mu) = \mu^x (1-\mu)^{1-x}$ 
@@ -297,6 +298,38 @@ where $\eta = \frac{\mu}{1-\mu}, T(x) = x, A(\eta) = \log(1+e^\eta) = -\log(1-\m
 $= \exp\left(\log\left(\frac{\mu}{1-\mu}\right)x - \log(1-\mu)\right)$
 
 Also $\mu = 1 / (1+e^{-\eta})$
+
+\textbf{Conjugacy} --- Bayesian modeling allows to incorporate priors of family F, and likelihood of family $G$. F and G are conjugate if the posterior is of the same family as F (the prior).
+
+Exponential family distributions have a conjugate prior.
+
+For global latent vars $\beta$, local latent vars $z$, and observed vars $x$:
+$$p(\beta, z, x) = p(\beta) \prod p(z_i, x_i | \beta)$$
+for stochastic variational inference, assume the form of the joint of local lat. vars and observed vars given beta to be exponential, take an exponential prior on the global lat vars hence get a exp posterior.
+
+\textbf{Mean-field for conjugates}
+
+$$q(z, \beta) = q_\lambda(\beta) \prod q_{\varphi_i}(z_i)$$
+
+Local update: $\varphi_i \leftarrow \E{\lambda}{\eta_l(\beta, x_i)}$ for each data point
+
+Global update: $\lambda \leftarrow \E{\varphi}{\eta_g(x, z)}$
+
+Alternate between these two using coordinate ascent.
+
+\subsubsection{Stochastic Variational Inference}
+
+Gradient optimization: $\lambda_{t+1} = \lambda_t + \delta \nabla_\lambda f(\lambda_t)$.
+
+Equivalent: $\arg\max_{d\lambda} f(\lambda + d\lambda)$ s.t. $||d\lambda||^2 \leq \epsilon$.
+
+Problem: $L_2$ distance not suitable for prob dists.
+
+Natural gradient for ELBO: $\arg\max_{d\lambda} ELBO(\lambda + d\lambda)$ s.t. $D_{KL}(q_\lambda, q_{\lambda + d\lambda}) \leq \epsilon$. Where $D_{KL}(p, q) = \KL{p}{q} + \KL{q}{p}$
+
+TODO slide 21 
+
+
 
 
 
