@@ -1,6 +1,6 @@
 # Probabilistic Graphical Models for Image Analysis: Lecture Notes
 
-Authors: Lukas Jendele\* and [Ondrej Skopek](https://oskopek.com/)*
+Authors: [Lukas Jendele](https://github.com/jendelel)\* and [Ondrej Skopek](https://oskopek.com/)*
 
 \* equal contribution
 
